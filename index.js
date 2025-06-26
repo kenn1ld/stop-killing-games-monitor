@@ -1,10 +1,18 @@
 import express from 'express';
 import cron from 'node-cron';
 import pkg from 'pg';
+import path from 'path';
+import { fileURLToPath } from 'url';
 const { Pool } = pkg;
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Serve static files from public directory
+app.use(express.static('public'));
 
 // Database connection
 const pool = new Pool({
@@ -508,6 +516,11 @@ app.get('/monitor', async (req, res) => {
   }
 });
 
+// Dashboard endpoint
+app.get('/dashboard', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+});
+
 // Status endpoint
 app.get('/', (req, res) => {
   res.json({ 
@@ -523,7 +536,8 @@ app.get('/', (req, res) => {
       history_stats: '/history-stats',
       performance: '/performance',
       trends: '/trends?days=7',
-      manual_trigger: '/monitor'
+      manual_trigger: '/monitor',
+      dashboard: '/dashboard'
     },
     last_successful_run: lastSuccessfulRun,
     error_count: errorCount,
@@ -539,7 +553,7 @@ app.listen(PORT, '0.0.0.0', async () => {
   await initializeDatabase();
   
   console.log('⏰ Cron job scheduled for every 5 minutes');
-  console.log('🌐 Available endpoints: /, /health, /latest, /history, /history-stats, /performance, /trends, /monitor');
+  console.log('🌐 Available endpoints: /, /health, /latest, /history, /history-stats, /performance, /trends, /monitor, /dashboard');
   
   // Run initial monitor after startup
   setTimeout(() => {
