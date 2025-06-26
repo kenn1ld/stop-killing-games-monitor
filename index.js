@@ -4,19 +4,35 @@ import cron from 'node-cron';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Your monitoring function (same logic as Vercel)
+// Keep process alive
+process.on('SIGTERM', () => {
+  console.log('Received SIGTERM, shutting down gracefully');
+});
+
+// Monitoring function with proper error handling
 async function runMonitor() {
   try {
+    console.log('🔄 Running monitor...');
+    
+    // Fetch signature count
     const progressResponse = await fetch('https://eci.ec.europa.eu/045/public/api/report/progression');
+    if (!progressResponse.ok) {
+      throw new Error(`Progress API failed: ${progressResponse.status}`);
+    }
     const progressData = await progressResponse.json();
     
+    // Fetch deadline info
     let deadline = null;
     try {
       const infoResponse = await fetch('https://eci.ec.europa.eu/045/public/api/initiative/description');
-      const infoData = await infoResponse.json();
-      const closingDate = infoData.initiativeInfo.closingDate;
-      deadline = new Date(closingDate.split('/').reverse().join('-') + 'T23:59:59Z');
-    } catch (e) {}
+      if (infoResponse.ok) {
+        const infoData = await infoResponse.json();
+        const closingDate = infoData.initiativeInfo.closingDate;
+        deadline = new Date(closingDate.split('/').reverse().join('-') + 'T23:59:59Z');
+      }
+    } catch (e) {
+      console.warn('Could not fetch deadline info');
+    }
     
     const now = new Date();
     const progressPercent = (progressData.signatureCount / progressData.goal) * 100;
@@ -50,67 +66,129 @@ async function runMonitor() {
     };
     
     await saveToGitHub(statsData);
-    console.log(`✅ Updated: ${progressData.signatureCount} signatures`);
+    console.log(`✅ Updated: ${progressData.signatureCount} signatures (${progressPercent.toFixed(2)}%)`);
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('❌ Monitor error:', error.message);
   }
 }
 
-// GitHub save function (same as before)
+// GitHub save function with proper error handling
 async function saveToGitHub(data) {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
   const REPO_OWNER = process.env.REPO_OWNER;
   const REPO_NAME = process.env.REPO_NAME;
   
-  if (!GITHUB_TOKEN) return;
+  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) {
+    console.warn('⚠️ Missing GitHub credentials - skipping save');
+    return;
+  }
   
   try {
     await updateGitHubFile(`${REPO_OWNER}/${REPO_NAME}`, 'eci_data_latest.json', JSON.stringify(data, null, 2), GITHUB_TOKEN);
+    console.log('💾 Saved to GitHub successfully');
   } catch (error) {
-    console.error('GitHub save error:', error);
+    console.error('❌ GitHub save error:', error.message);
   }
 }
 
 async function updateGitHubFile(repo, filename, content, token) {
   const url = `https://api.github.com/repos/${repo}/contents/${filename}`;
   
+  // Get current file SHA if it exists
   let sha = null;
   try {
-    const getResponse = await fetch(url, { headers: { 'Authorization': `token ${token}` } });
+    const getResponse = await fetch(url, { 
+      headers: { 'Authorization': `token ${token}` } 
+    });
     if (getResponse.ok) {
       const fileData = await getResponse.json();
       sha = fileData.sha;
     }
-  } catch (e) {}
+  } catch (e) {
+    // File doesn't exist yet
+  }
   
+  // Update file
   const updateData = {
-    message: `Update ${filename}`,
+    message: `Update ECI data - ${new Date().toISOString()}`,
     content: Buffer.from(content).toString('base64'),
     ...(sha && { sha })
   };
   
-  await fetch(url, {
+  const response = await fetch(url, {
     method: 'PUT',
-    headers: { 'Authorization': `token ${token}`, 'Content-Type': 'application/json' },
+    headers: { 
+      'Authorization': `token ${token}`, 
+      'Content-Type': 'application/json' 
+    },
     body: JSON.stringify(updateData)
   });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`GitHub API failed: ${response.status} - ${errorText}`);
+  }
 }
 
 // Schedule cron job - every 5 minutes
-cron.schedule('*/5 * * * *', runMonitor);
+cron.schedule('*/5 * * * *', () => {
+  console.log('⏰ Cron triggered');
+  runMonitor();
+});
 
-// API endpoint for manual testing
+// Health check endpoint
+app.get('/health', (req, res) => {
+  res.json({ 
+    status: 'healthy',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Manual trigger endpoint
 app.get('/monitor', async (req, res) => {
-  await runMonitor();
-  res.json({ success: true });
+  console.log('🔄 Manual trigger received');
+  try {
+    await runMonitor();
+    res.json({ 
+      success: true, 
+      message: 'Monitor executed successfully',
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
+// Status endpoint
 app.get('/', (req, res) => {
-  res.json({ status: 'ECI Monitor running' });
+  res.json({ 
+    service: 'Stop Killing Games ECI Monitor',
+    status: 'running',
+    uptime: process.uptime(),
+    cron: 'Every 5 minutes',
+    endpoints: {
+      health: '/health',
+      manual_trigger: '/monitor'
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
-app.listen(PORT, () => {
+// Start server with proper binding
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log('⏰ Cron job scheduled for every 5 minutes');
+  console.log('🌐 Available endpoints: /, /health, /monitor');
+  
+  // Run initial monitor after startup
+  setTimeout(() => {
+    console.log('🔄 Running initial monitor check...');
+    runMonitor();
+  }, 3000);
 });
