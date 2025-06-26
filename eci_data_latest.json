@@ -1,13 +1,13 @@
 {
-  "signatures": 518270,
+  "signatures": 518271,
   "goal": 1000000,
-  "timestamp": "2025-06-26T02:43:11.856Z",
-  "progress_percent": 51.827,
+  "timestamp": "2025-06-26T02:43:24.581Z",
+  "progress_percent": 51.8271,
   "deadline": "2025-07-31T23:59:59.000Z",
   "days_remaining": 35,
-  "required_per_week": 96346,
-  "required_per_day": 13763.714285714286,
-  "required_per_hour": 559.5005807200929,
-  "required_per_minute": 9.322122455298398,
-  "required_per_second": 0.15536635245937327
+  "required_per_week": 96345.79999999999,
+  "required_per_day": 13763.685714285713,
+  "required_per_hour": 559.4994192799071,
+  "required_per_minute": 9.322103103955415,
+  "required_per_second": 0.1553666813520248
 }
