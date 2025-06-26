@@ -27,19 +27,30 @@ async function initializeDatabase() {
         required_per_hour DECIMAL(10,2),
         required_per_minute DECIMAL(10,2),
         required_per_second DECIMAL(10,2),
-        -- Actual rates (calculated from historical data)
-        actual_per_minute DECIMAL(10,2),
-        actual_per_hour DECIMAL(10,2),
-        actual_per_day DECIMAL(10,2),
-        actual_per_week DECIMAL(10,2),
-        -- Performance indicators
-        on_track_daily BOOLEAN,
-        on_track_hourly BOOLEAN,
-        velocity_trend VARCHAR(20), -- 'accelerating', 'steady', 'slowing'
         timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
         created_at TIMESTAMP NOT NULL DEFAULT NOW()
       )
     `);
+    
+    // Add new columns if they don't exist (for existing tables)
+    const newColumns = [
+      'actual_per_minute DECIMAL(10,2)',
+      'actual_per_hour DECIMAL(10,2)', 
+      'actual_per_day DECIMAL(10,2)',
+      'actual_per_week DECIMAL(10,2)',
+      'on_track_daily BOOLEAN',
+      'on_track_hourly BOOLEAN',
+      'velocity_trend VARCHAR(20)'
+    ];
+    
+    for (const column of newColumns) {
+      try {
+        await pool.query(`ALTER TABLE eci_data ADD COLUMN IF NOT EXISTS ${column}`);
+      } catch (err) {
+        // Column might already exist, ignore error
+        console.log(`Column ${column.split(' ')[0]} already exists or error adding:`, err.message);
+      }
+    }
     
     // Create index for faster queries
     await pool.query(`
@@ -293,7 +304,7 @@ async function runMonitor() {
 }
 
 // Schedule cron job - every 5 minutes
-cron.schedule('*/1 * * * *', () => {
+cron.schedule('*/5 * * * *', () => {
   console.log('⏰ Cron triggered');
   runMonitor().catch(error => {
     console.error('❌ Cron job error:', error.message);
