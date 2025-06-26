@@ -1,21 +1,83 @@
 import express from 'express';
 import cron from 'node-cron';
+import pkg from 'pg';
+const { Pool } = pkg;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Database connection
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+});
+
+// Test database connection and create table
+async function initializeDatabase() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS eci_data (
+        id SERIAL PRIMARY KEY,
+        signatures INTEGER NOT NULL,
+        goal INTEGER NOT NULL,
+        progress_percent DECIMAL(5,2) NOT NULL,
+        deadline TIMESTAMP,
+        days_remaining INTEGER,
+        required_per_day DECIMAL(10,2),
+        required_per_hour DECIMAL(10,2),
+        required_per_minute DECIMAL(10,2),
+        required_per_second DECIMAL(10,2),
+        timestamp TIMESTAMP NOT NULL DEFAULT NOW(),
+        created_at TIMESTAMP NOT NULL DEFAULT NOW()
+      )
+    `);
+    
+    // Create index for faster queries
+    await pool.query(`
+      CREATE INDEX IF NOT EXISTS idx_eci_data_timestamp ON eci_data(timestamp);
+    `);
+    
+    console.log('✅ Database initialized successfully');
+  } catch (error) {
+    console.error('❌ Database initialization failed:', error.message);
+  }
+}
+
 // Keep process alive
 process.on('SIGTERM', () => {
   console.log('Received SIGTERM, shutting down gracefully');
+  pool.end();
+  process.exit(0);
 });
 
-// Monitoring function with proper error handling
+// Track app state
+let isMonitorRunning = false;
+let lastSuccessfulRun = null;
+let errorCount = 0;
+
+// Monitoring function
 async function runMonitor() {
+  if (isMonitorRunning) {
+    console.log('⏭️ Monitor already running, skipping...');
+    return;
+  }
+
+  isMonitorRunning = true;
+  
   try {
     console.log('🔄 Running monitor...');
     
-    // Fetch signature count
-    const progressResponse = await fetch('https://eci.ec.europa.eu/045/public/api/report/progression');
+    // Fetch signature count with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
+    const progressResponse = await fetch('https://eci.ec.europa.eu/045/public/api/report/progression', {
+      signal: controller.signal,
+      headers: { 'User-Agent': 'ECI-Monitor/1.0' }
+    });
+    
+    clearTimeout(timeoutId);
+    
     if (!progressResponse.ok) {
       throw new Error(`Progress API failed: ${progressResponse.status}`);
     }
@@ -24,21 +86,38 @@ async function runMonitor() {
     // Fetch deadline info
     let deadline = null;
     try {
-      const infoResponse = await fetch('https://eci.ec.europa.eu/045/public/api/initiative/description');
+      const infoController = new AbortController();
+      const infoTimeoutId = setTimeout(() => infoController.abort(), 15000);
+      
+      const infoResponse = await fetch('https://eci.ec.europa.eu/045/public/api/initiative/description', {
+        signal: infoController.signal,
+        headers: { 'User-Agent': 'ECI-Monitor/1.0' }
+      });
+      
+      clearTimeout(infoTimeoutId);
+      
       if (infoResponse.ok) {
         const infoData = await infoResponse.json();
         const closingDate = infoData.initiativeInfo.closingDate;
         deadline = new Date(closingDate.split('/').reverse().join('-') + 'T23:59:59Z');
       }
     } catch (e) {
-      console.warn('Could not fetch deadline info');
+      console.warn('Could not fetch deadline info:', e.message);
     }
     
     const now = new Date();
     const progressPercent = (progressData.signatureCount / progressData.goal) * 100;
     const remaining = progressData.goal - progressData.signatureCount;
     
-    let deadlineStats = {};
+    let deadlineStats = {
+      deadline: null,
+      days_remaining: null,
+      required_per_day: null,
+      required_per_hour: null,
+      required_per_minute: null,
+      required_per_second: null
+    };
+    
     if (deadline) {
       const timeRemaining = deadline.getTime() - now.getTime();
       const daysLeft = Math.floor(timeRemaining / (1000 * 60 * 60 * 24));
@@ -47,9 +126,8 @@ async function runMonitor() {
       const secondsLeft = Math.floor(timeRemaining / 1000);
       
       deadlineStats = {
-        deadline: deadline.toISOString(),
+        deadline: deadline,
         days_remaining: daysLeft,
-        required_per_week: daysLeft > 0 ? (remaining / daysLeft) * 7 : null,
         required_per_day: daysLeft > 0 ? remaining / daysLeft : null,
         required_per_hour: hoursLeft > 0 ? remaining / hoursLeft : null,
         required_per_minute: minutesLeft > 0 ? remaining / minutesLeft : null,
@@ -57,166 +135,135 @@ async function runMonitor() {
       };
     }
     
-    const statsData = {
-      signatures: progressData.signatureCount,
-      goal: progressData.goal,
-      timestamp: now.toISOString(),
-      progress_percent: progressPercent,
-      ...deadlineStats
-    };
-    
-    // Save both latest and add to history
-    await Promise.all([
-      saveLatestToGitHub(statsData),
-      addToHistoryOnGitHub(statsData)
+    // Save to database
+    await pool.query(`
+      INSERT INTO eci_data (
+        signatures, goal, progress_percent, deadline, days_remaining,
+        required_per_day, required_per_hour, required_per_minute, required_per_second,
+        timestamp
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `, [
+      progressData.signatureCount,
+      progressData.goal,
+      progressPercent,
+      deadlineStats.deadline,
+      deadlineStats.days_remaining,
+      deadlineStats.required_per_day,
+      deadlineStats.required_per_hour,
+      deadlineStats.required_per_minute,
+      deadlineStats.required_per_second,
+      now
     ]);
     
-    console.log(`✅ Updated: ${progressData.signatureCount} signatures (${progressPercent.toFixed(2)}%)`);
+    lastSuccessfulRun = now;
+    errorCount = 0;
+    console.log(`✅ Saved to database: ${progressData.signatureCount} signatures (${progressPercent.toFixed(2)}%)`);
     
   } catch (error) {
-    console.error('❌ Monitor error:', error.message);
-  }
-}
-
-// Save latest data (existing functionality)
-async function saveLatestToGitHub(data) {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = process.env.REPO_OWNER;
-  const REPO_NAME = process.env.REPO_NAME;
-  
-  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) {
-    console.warn('⚠️ Missing GitHub credentials - skipping latest save');
-    return;
-  }
-  
-  try {
-    await updateGitHubFile(`${REPO_OWNER}/${REPO_NAME}`, 'eci_data_latest.json', JSON.stringify(data, null, 2), GITHUB_TOKEN);
-    console.log('💾 Latest data saved to GitHub');
-  } catch (error) {
-    console.error('❌ Latest GitHub save error:', error.message);
-  }
-}
-
-// Add to history file
-async function addToHistoryOnGitHub(newData) {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = process.env.REPO_OWNER;
-  const REPO_NAME = process.env.REPO_NAME;
-  
-  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) {
-    console.warn('⚠️ Missing GitHub credentials - skipping history save');
-    return;
-  }
-  
-  try {
-    const repo = `${REPO_OWNER}/${REPO_NAME}`;
-    const filename = 'eci_data_history.json';
-    
-    // Get existing history
-    let existingHistory = [];
-    try {
-      const existingData = await getGitHubFileContent(repo, filename, GITHUB_TOKEN);
-      if (existingData) {
-        existingHistory = JSON.parse(existingData);
-        if (!Array.isArray(existingHistory)) {
-          existingHistory = [];
-        }
-      }
-    } catch (e) {
-      console.log('📝 Creating new history file');
-      existingHistory = [];
-    }
-    
-    // Add new entry to history
-    existingHistory.push(newData);
-    
-    // Optional: Keep only last 10,000 entries to prevent file from getting too large
-    if (existingHistory.length > 10000) {
-      existingHistory = existingHistory.slice(-10000);
-      console.log('🔄 Trimmed history to last 10,000 entries');
-    }
-    
-    // Save updated history
-    const historyContent = JSON.stringify(existingHistory, null, 2);
-    await updateGitHubFile(repo, filename, historyContent, GITHUB_TOKEN);
-    console.log(`📚 History updated (${existingHistory.length} total entries)`);
-    
-  } catch (error) {
-    console.error('❌ History GitHub save error:', error.message);
-  }
-}
-
-// Helper function to get file content from GitHub
-async function getGitHubFileContent(repo, filename, token) {
-  const url = `https://api.github.com/repos/${repo}/contents/${filename}`;
-  
-  const response = await fetch(url, {
-    headers: { 'Authorization': `token ${token}` }
-  });
-  
-  if (!response.ok) {
-    if (response.status === 404) {
-      return null; // File doesn't exist
-    }
-    throw new Error(`Failed to get file: ${response.status}`);
-  }
-  
-  const data = await response.json();
-  return Buffer.from(data.content, 'base64').toString('utf-8');
-}
-
-async function updateGitHubFile(repo, filename, content, token) {
-  const url = `https://api.github.com/repos/${repo}/contents/${filename}`;
-  
-  // Get current file SHA if it exists
-  let sha = null;
-  try {
-    const getResponse = await fetch(url, { 
-      headers: { 'Authorization': `token ${token}` } 
-    });
-    if (getResponse.ok) {
-      const fileData = await getResponse.json();
-      sha = fileData.sha;
-    }
-  } catch (e) {
-    // File doesn't exist yet
-  }
-  
-  // Update file
-  const updateData = {
-    message: `Update ECI data - ${new Date().toISOString()}`,
-    content: Buffer.from(content).toString('base64'),
-    ...(sha && { sha })
-  };
-  
-  const response = await fetch(url, {
-    method: 'PUT',
-    headers: { 
-      'Authorization': `token ${token}`, 
-      'Content-Type': 'application/json' 
-    },
-    body: JSON.stringify(updateData)
-  });
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`GitHub API failed: ${response.status} - ${errorText}`);
+    errorCount++;
+    console.error(`❌ Monitor error (attempt ${errorCount}):`, error.message);
+  } finally {
+    isMonitorRunning = false;
   }
 }
 
 // Schedule cron job - every 5 minutes
 cron.schedule('*/5 * * * *', () => {
   console.log('⏰ Cron triggered');
-  runMonitor();
+  runMonitor().catch(error => {
+    console.error('❌ Cron job error:', error.message);
+  });
 });
 
 // Health check endpoint
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'healthy',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
+app.get('/health', async (req, res) => {
+  try {
+    // Test database connection
+    await pool.query('SELECT NOW()');
+    
+    res.json({ 
+      status: 'healthy',
+      uptime: process.uptime(),
+      database: 'connected',
+      last_successful_run: lastSuccessfulRun,
+      error_count: errorCount,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      status: 'unhealthy',
+      database: 'disconnected',
+      error: error.message,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Get latest data
+app.get('/latest', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT * FROM eci_data 
+      ORDER BY timestamp DESC 
+      LIMIT 1
+    `);
+    
+    if (result.rows.length === 0) {
+      return res.json({ message: 'No data available yet' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get historical data
+app.get('/history', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+    
+    const result = await pool.query(`
+      SELECT * FROM eci_data 
+      ORDER BY timestamp DESC 
+      LIMIT $1 OFFSET $2
+    `, [limit, offset]);
+    
+    res.json({
+      data: result.rows,
+      count: result.rows.length,
+      limit,
+      offset
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get history stats
+app.get('/history-stats', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        COUNT(*) as total_entries,
+        MIN(timestamp) as first_entry,
+        MAX(timestamp) as last_entry,
+        MAX(signatures) as latest_signatures,
+        MIN(signatures) as first_signatures,
+        (MAX(signatures) - MIN(signatures)) as total_growth,
+        AVG(signatures) as average_signatures
+      FROM eci_data
+    `);
+    
+    if (result.rows.length === 0) {
+      return res.json({ message: 'No data available yet' });
+    }
+    
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Manual trigger endpoint
@@ -238,39 +285,6 @@ app.get('/monitor', async (req, res) => {
   }
 });
 
-// New endpoint to get history stats
-app.get('/history-stats', async (req, res) => {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN;
-  const REPO_OWNER = process.env.REPO_OWNER;
-  const REPO_NAME = process.env.REPO_NAME;
-  
-  if (!GITHUB_TOKEN || !REPO_OWNER || !REPO_NAME) {
-    return res.status(500).json({ error: 'Missing GitHub credentials' });
-  }
-  
-  try {
-    const repo = `${REPO_OWNER}/${REPO_NAME}`;
-    const historyContent = await getGitHubFileContent(repo, 'eci_data_history.json', GITHUB_TOKEN);
-    
-    if (!historyContent) {
-      return res.json({ message: 'No history data available yet' });
-    }
-    
-    const history = JSON.parse(historyContent);
-    
-    res.json({
-      total_entries: history.length,
-      first_entry: history[0]?.timestamp,
-      last_entry: history[history.length - 1]?.timestamp,
-      latest_signatures: history[history.length - 1]?.signatures,
-      first_signatures: history[0]?.signatures,
-      total_growth: history.length > 1 ? history[history.length - 1]?.signatures - history[0]?.signatures : 0
-    });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
 // Status endpoint
 app.get('/', (req, res) => {
   res.json({ 
@@ -278,25 +292,29 @@ app.get('/', (req, res) => {
     status: 'running',
     uptime: process.uptime(),
     cron: 'Every 5 minutes',
-    files: {
-      latest: 'eci_data_latest.json',
-      history: 'eci_data_history.json'
-    },
+    database: 'PostgreSQL',
     endpoints: {
       health: '/health',
-      manual_trigger: '/monitor',
-      history_stats: '/history-stats'
+      latest: '/latest',
+      history: '/history?limit=100&offset=0',
+      history_stats: '/history-stats',
+      manual_trigger: '/monitor'
     },
+    last_successful_run: lastSuccessfulRun,
+    error_count: errorCount,
     timestamp: new Date().toISOString()
   });
 });
 
-// Start server with proper binding
-app.listen(PORT, '0.0.0.0', () => {
+// Start server
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  console.log('🗄️ Initializing database...');
+  
+  await initializeDatabase();
+  
   console.log('⏰ Cron job scheduled for every 5 minutes');
-  console.log('🌐 Available endpoints: /, /health, /monitor, /history-stats');
-  console.log('📁 Will maintain: eci_data_latest.json & eci_data_history.json');
+  console.log('🌐 Available endpoints: /, /health, /latest, /history, /history-stats, /monitor');
   
   // Run initial monitor after startup
   setTimeout(() => {
