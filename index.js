@@ -6,10 +6,7 @@ const { Pool } = pkg;
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Database connection with debugging
-console.log('🔍 DATABASE_URL exists:', !!process.env.DATABASE_URL);
-console.log('🔍 DATABASE_URL preview:', process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 20) + '...' : 'undefined');
-
+// Database connection
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
@@ -18,13 +15,6 @@ const pool = new Pool({
 // Test database connection and create table
 async function initializeDatabase() {
   try {
-    console.log('🔍 Attempting database connection...');
-    
-    // Test basic connection first
-    const client = await pool.connect();
-    console.log('✅ Database connection successful');
-    client.release();
-    
     await pool.query(`
       CREATE TABLE IF NOT EXISTS eci_data (
         id SERIAL PRIMARY KEY,
@@ -50,13 +40,6 @@ async function initializeDatabase() {
     console.log('✅ Database initialized successfully');
   } catch (error) {
     console.error('❌ Database initialization failed:', error.message);
-    console.error('❌ Full error:', error);
-    
-    // If DATABASE_URL is missing, provide helpful message
-    if (!process.env.DATABASE_URL) {
-      console.error('💡 DATABASE_URL environment variable is not set!');
-      console.error('💡 Make sure you added DATABASE_URL = ${{Postgres.DATABASE_URL}} in Railway');
-    }
   }
 }
 
