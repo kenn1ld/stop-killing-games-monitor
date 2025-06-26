@@ -314,7 +314,7 @@ async function runMonitor() {
 }
 
 // Schedule cron job - every 5 minutes
-cron.schedule('*/5 * * * *', () => {
+cron.schedule('*/1 * * * *', () => {
   console.log('⏰ Cron triggered');
   runMonitor().catch(error => {
     console.error('❌ Cron job error:', error.message);
