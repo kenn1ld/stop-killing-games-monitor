@@ -22,8 +22,8 @@
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <!-- Emotion (for MUI styling) -->
-  <script src="https://unpkg.com/@emotion/react@11.11.0/umd/emotion-react.umd.min.js" crossorigin></script>
-  <script src="https://unpkg.com/@emotion/styled@11.11.0/umd/emotion-styled.umd.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emotion/react@11.11.0/umd/emotion-react.umd.min.js" crossorigin></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emotion/styled@11.11.0/umd/emotion-styled.umd.min.js" crossorigin></script>
   <!-- MUI Core -->
   <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js" crossorigin></script>
   <!-- Chart.js -->
@@ -47,18 +47,19 @@
 
     function MainProgress({ data }) {
       if (!data) return h(Typography, null, 'Loading...');
-      const { signatures, goal, progress_percent, on_track_daily, velocity_trend, actual_per_day } = data;
+      const { signatures, goal, on_track_daily, velocity_trend, actual_per_day } = data;
+      const progress = Number(data.progress_percent) || 0;
       const statusColor = on_track_daily ? 'success' : on_track_daily === false ? 'error' : 'default';
       return (
         h(Paper, { sx: { p:3, backdropFilter:'blur(10px)' } },
           h(Box, { display:'flex', justifyContent:'space-between', alignItems:'center', mb:2 },
             h(Box, null,
               h(Typography, { variant:'h3' }, signatures.toLocaleString()),
-              h(Typography, null, `of ${goal.toLocaleString()} (${progress_percent.toFixed(1)}%)`)
+              h(Typography, null, `of ${goal.toLocaleString()} (${progress.toFixed(1)}%)`)
             ),
             h(Chip, { label: on_track_daily ? 'ON TRACK' : on_track_daily===false ? 'BEHIND' : 'MONITOR', color: statusColor })
           ),
-          h(LinearProgress, { variant:'determinate', value: Math.min(progress_percent,100), sx:{ height:16, borderRadius:8 } }),
+          h(LinearProgress, { variant:'determinate', value: Math.min(progress,100), sx:{ height:16, borderRadius:8 } }),
           h(Grid, { container:true, spacing:2, mt:2 },
             h(Grid, { item:true, xs:4 },
               h(Box, { textAlign:'center' },
