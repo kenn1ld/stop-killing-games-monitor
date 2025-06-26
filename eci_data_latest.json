@@ -1,7 +1,7 @@
 {
   "signatures": 518232,
   "goal": 1000000,
-  "timestamp": "2025-06-26T02:37:16.394Z",
+  "timestamp": "2025-06-26T02:37:29.784Z",
   "progress_percent": 51.8232,
   "deadline": "2025-07-31T23:59:59.000Z",
   "days_remaining": 35,
@@ -9,5 +9,5 @@
   "required_per_day": 13764.8,
   "required_per_hour": 559.5447154471544,
   "required_per_minute": 9.321775473085406,
-  "required_per_second": 0.1553608202873818
+  "required_per_second": 0.15536147160111308
 }
