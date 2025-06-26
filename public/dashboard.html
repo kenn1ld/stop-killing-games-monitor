@@ -19,109 +19,117 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 20px;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
-            padding: 30px 0;
+            margin-bottom: 30px;
+            padding: 20px 0;
         }
 
         .header h1 {
-            font-size: 3rem;
+            font-size: 3.5rem;
             margin-bottom: 10px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #fff, #e0e0e0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .header p {
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             opacity: 0.9;
         }
 
-        .stats-grid {
+        .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: 2fr 1fr;
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
         }
 
-        .stat-card {
+        .main-progress {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-        }
-
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: bold;
-            margin-bottom: 8px;
-            color: #fff;
-        }
-
-        .stat-label {
-            font-size: 1rem;
-            opacity: 0.8;
-            margin-bottom: 10px;
-        }
-
-        .stat-trend {
-            font-size: 0.9rem;
-            padding: 5px 10px;
+            backdrop-filter: blur(15px);
             border-radius: 20px;
-            display: inline-block;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .trend-positive {
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .signature-count {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4CAF50, #8BC34A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .goal-text {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 1.1rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .status-on-track {
             background: rgba(76, 175, 80, 0.3);
             color: #4CAF50;
+            border: 2px solid rgba(76, 175, 80, 0.5);
         }
 
-        .trend-negative {
+        .status-behind {
             background: rgba(244, 67, 54, 0.3);
             color: #f44336;
+            border: 2px solid rgba(244, 67, 54, 0.5);
         }
 
-        .trend-neutral {
+        .status-neutral {
             background: rgba(158, 158, 158, 0.3);
             color: #9e9e9e;
-        }
-
-        .progress-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(158, 158, 158, 0.5);
         }
 
         .progress-bar {
             width: 100%;
-            height: 30px;
+            height: 40px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
+            border-radius: 20px;
             overflow: hidden;
-            margin: 20px 0;
+            margin: 25px 0;
             position: relative;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
         }
 
         .progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, #4CAF50, #8BC34A);
-            border-radius: 15px;
-            transition: width 0.5s ease;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A, #CDDC39);
+            border-radius: 20px;
+            transition: width 1s ease;
             position: relative;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
         }
 
         .progress-text {
@@ -130,24 +138,119 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-weight: bold;
+            font-size: 1.2rem;
             color: white;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
         }
+
+        .key-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .metric-card {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .metric-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .summary-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .deadline-card, .velocity-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+
+        .stat-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .velocity-positive { color: #4CAF50; }
+        .velocity-negative { color: #f44336; }
+        .velocity-neutral { color: #9e9e9e; }
 
         .chart-container {
             background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 30px;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            height: 400px;
+            height: 450px;
         }
 
         .loading {
             text-align: center;
             padding: 40px;
             font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
 
         .loading::after {
@@ -159,26 +262,6 @@
             0%, 33% { content: '⏳ Loading'; }
             34%, 66% { content: '⏳ Loading.'; }
             67%, 100% { content: '⏳ Loading..'; }
-        }
-
-        .status-indicator {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border-radius: 25px;
-            font-weight: bold;
-            margin-top: 10px;
-        }
-
-        .status-on-track {
-            background: rgba(76, 175, 80, 0.3);
-            color: #4CAF50;
-        }
-
-        .status-behind {
-            background: rgba(244, 67, 54, 0.3);
-            color: #f44336;
         }
 
         .refresh-btn {
@@ -194,6 +277,7 @@
             font-size: 1rem;
             backdrop-filter: blur(10px);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
         }
 
         .refresh-btn:hover {
@@ -208,14 +292,15 @@
             font-size: 0.9rem;
         }
 
-        .emoji {
-            font-size: 1.5em;
-            margin-right: 8px;
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         @media (max-width: 768px) {
             .header h1 {
-                font-size: 2rem;
+                font-size: 2.5rem;
             }
             
             .stats-grid {
@@ -224,6 +309,14 @@
             
             .container {
                 padding: 10px;
+            }
+
+            .signature-count {
+                font-size: 2rem;
+            }
+
+            .key-metrics {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
     </style>
@@ -235,17 +328,43 @@
             <p>European Citizens' Initiative Progress Tracker</p>
         </div>
 
-        <div class="progress-section">
-            <h2>🎯 Current Progress</h2>
-            <div id="mainProgress" class="loading"></div>
+        <div class="dashboard-grid">
+            <div class="main-progress">
+                <div id="mainProgress" class="loading"></div>
+            </div>
+            
+            <div class="summary-panel">
+                <div class="deadline-card">
+                    <h3>⏰ Deadline Info</h3>
+                    <div id="deadlineInfo" class="loading"></div>
+                </div>
+                
+                <div class="velocity-card">
+                    <h3>🚀 Velocity Tracking</h3>
+                    <div id="velocityInfo" class="loading"></div>
+                </div>
+            </div>
         </div>
 
-        <div class="stats-grid" id="statsGrid">
-            <div class="loading"></div>
+        <div class="stats-grid">
+            <div class="stat-section">
+                <div class="section-title">⚡ Real-Time Rates</div>
+                <div id="realtimeRates" class="loading"></div>
+            </div>
+            
+            <div class="stat-section">
+                <div class="section-title">🎯 Target vs Actual</div>
+                <div id="targetVsActual" class="loading"></div>
+            </div>
+            
+            <div class="stat-section">
+                <div class="section-title">📊 Performance Metrics</div>
+                <div id="performanceMetrics" class="loading"></div>
+            </div>
         </div>
 
         <div class="chart-container">
-            <h3>📈 Signature Growth Trend</h3>
+            <h3 style="margin-bottom: 20px;">📈 Signature Growth Trend</h3>
             <canvas id="trendChart" style="display: none;"></canvas>
             <div id="chartLoading" class="loading"></div>
         </div>
@@ -261,8 +380,7 @@
     <script>
         let chart = null;
         
-        // Configuration - Update this with your Railway app URL
-        const API_BASE = window.location.origin; // Uses same domain as the dashboard
+        const API_BASE = window.location.origin;
         
         async function fetchAPI(endpoint) {
             try {
@@ -276,99 +394,83 @@
         }
 
         function formatNumber(num) {
-            return new Intl.NumberFormat().format(num);
+            if (num === null || num === undefined) return 'N/A';
+            return new Intl.NumberFormat().format(Math.round(num));
         }
 
         function formatPercent(num) {
+            if (num === null || num === undefined) return 'N/A';
             return `${num.toFixed(1)}%`;
         }
 
-        function getStatusEmoji(isOnTrack, trend) {
-            if (isOnTrack) return trend === 'accelerating' ? '🚀' : '🟢';
-            return trend === 'slowing' ? '🔴' : '⚠️';
+        function formatRate(num) {
+            if (num === null || num === undefined || num === 0) return 'N/A';
+            return formatNumber(num);
         }
 
-        function getTrendClass(trend) {
-            if (trend === 'accelerating') return 'trend-positive';
-            if (trend === 'slowing') return 'trend-negative';
-            return 'trend-neutral';
+        function getVelocityEmoji(trend) {
+            switch(trend) {
+                case 'accelerating': return '🚀';
+                case 'slowing': return '📉';
+                case 'steady': return '➡️';
+                default: return '❓';
+            }
+        }
+
+        function getVelocityClass(trend) {
+            switch(trend) {
+                case 'accelerating': return 'velocity-positive';
+                case 'slowing': return 'velocity-negative';
+                default: return 'velocity-neutral';
+            }
         }
 
         async function loadMainProgress() {
             const latest = await fetchAPI('/latest');
-            const performance = await fetchAPI('/performance');
             
             if (!latest) {
-                document.getElementById('mainProgress').innerHTML = '❌ Failed to load progress data';
+                document.getElementById('mainProgress').innerHTML = `
+                    <div style="color: #f44336; text-align: center;">
+                        ❌ Failed to load progress data
+                        <br><button onclick="loadData()" style="margin-top: 10px; padding: 8px 16px; background: rgba(255,255,255,0.2); border: none; color: white; border-radius: 5px; cursor: pointer;">Try Again</button>
+                    </div>
+                `;
                 return;
             }
 
-            // Handle case where performance data might not be available yet
-            const safePerformance = performance || {
-                on_track_daily: null,
-                velocity_trend: 'unknown',
-                actual_per_day: null,
-                daily_performance_ratio: null
-            };
+            const isOnTrack = latest.on_track_daily;
+            const statusClass = isOnTrack ? 'status-on-track' : (isOnTrack === false ? 'status-behind' : 'status-neutral');
+            const statusText = isOnTrack ? 'ON TRACK' : (isOnTrack === false ? 'BEHIND SCHEDULE' : 'MONITORING');
+            const statusEmoji = getVelocityEmoji(latest.velocity_trend);
 
             const progressHtml = `
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap;">
-                    <h3 style="font-size: 1.8rem;">${formatNumber(latest.signatures)} / ${formatNumber(latest.goal)} Signatures</h3>
-                    <div class="status-indicator ${safePerformance.on_track_daily ? 'status-on-track' : safePerformance.on_track_daily === false ? 'status-behind' : 'trend-neutral'}" style="margin-top: 10px;">
-                        ${getStatusEmoji(safePerformance.on_track_daily, safePerformance.velocity_trend)}
-                        ${safePerformance.on_track_daily ? 'ON TRACK' : safePerformance.on_track_daily === false ? 'BEHIND SCHEDULE' : 'TRACKING'}
+                <div class="progress-header">
+                    <div>
+                        <div class="signature-count">${formatNumber(latest.signatures)}</div>
+                        <div class="goal-text">of ${formatNumber(latest.goal)} signatures (${formatPercent(latest.progress_percent)})</div>
                     </div>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: ${Math.min(latest.progress_percent, 100)}%"></div>
-                    <div class="progress-text">${formatPercent(latest.progress_percent)}</div>
-                </div>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 25px;">
-                    <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                        <strong style="color: #4CAF50;">📅 Days Remaining</strong><br>
-                        <span style="font-size: 2.2em; font-weight: bold;">${latest.days_remaining || 'N/A'}</span>
-                        ${latest.deadline ? `<br><small style="opacity: 0.8;">Until ${new Date(latest.deadline).toLocaleDateString()}</small>` : ''}
-                    </div>
-                    <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                        <strong style="color: #2196F3;">🎯 Target Daily</strong><br>
-                        <span style="font-size: 2.2em; font-weight: bold;">${latest.required_per_day ? formatNumber(Math.round(latest.required_per_day)) : 'N/A'}</span>
-                        <br><small style="opacity: 0.8;">signatures needed</small>
-                    </div>
-                    <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                        <strong style="color: ${safePerformance.on_track_daily ? '#4CAF50' : '#f44336'};">⚡ Actual Daily</strong><br>
-                        <span style="font-size: 2.2em; font-weight: bold; color: ${safePerformance.on_track_daily ? '#4CAF50' : '#f44336'}">
-                            ${safePerformance.actual_per_day ? formatNumber(Math.round(safePerformance.actual_per_day)) : 'Calculating...'}
-                        </span>
-                        ${safePerformance.daily_performance_ratio ? 
-                            `<br><small style="opacity: 0.8;">${(safePerformance.daily_performance_ratio * 100).toFixed(0)}% of target</small>` : ''}
-                    </div>
-                    <div style="text-align: center; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px;">
-                        <strong style="color: #FF9800;">🚀 Remaining</strong><br>
-                        <span style="font-size: 2.2em; font-weight: bold;">${formatNumber(latest.goal - latest.signatures)}</span>
-                        <br><small style="opacity: 0.8;">signatures to go</small>
+                    <div class="status-badge ${statusClass}">
+                        ${statusEmoji} ${statusText}
                     </div>
                 </div>
                 
-                <!-- Additional Progress Insights -->
-                <div style="margin-top: 25px; padding: 20px; background: rgba(0,0,0,0.2); border-radius: 10px;">
-                    <h4 style="margin-bottom: 15px; color: #fff;">📊 Progress Breakdown</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px;">
-                        <div>
-                            <strong>Per Hour Target:</strong><br>
-                            <span style="font-size: 1.3em;">${latest.required_per_hour ? Math.round(latest.required_per_hour) : 'N/A'}</span>
-                        </div>
-                        <div>
-                            <strong>Per Minute Target:</strong><br>
-                            <span style="font-size: 1.3em;">${latest.required_per_minute ? Math.round(latest.required_per_minute) : 'N/A'}</span>
-                        </div>
-                        <div>
-                            <strong>Success Rate:</strong><br>
-                            <span style="font-size: 1.3em; color: ${latest.progress_percent > 50 ? '#4CAF50' : '#FF9800'};">${formatPercent(latest.progress_percent)}</span>
-                        </div>
-                        <div>
-                            <strong>Momentum:</strong><br>
-                            <span style="font-size: 1.3em;">${safePerformance.velocity_trend || 'unknown'} ${safePerformance.velocity_trend === 'accelerating' ? '📈' : safePerformance.velocity_trend === 'slowing' ? '📉' : '➡️'}</span>
-                        </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${Math.min(latest.progress_percent || 0, 100)}%"></div>
+                    <div class="progress-text">${formatPercent(latest.progress_percent || 0)}</div>
+                </div>
+                
+                <div class="key-metrics">
+                    <div class="metric-card">
+                        <div class="metric-number" style="color: #FF9800;">${formatNumber(latest.goal - latest.signatures)}</div>
+                        <div class="metric-label">Signatures Remaining</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-number" style="color: #2196F3;">${formatRate(latest.actual_per_day)}</div>
+                        <div class="metric-label">Current Daily Rate</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-number ${getVelocityClass(latest.velocity_trend)}">${latest.velocity_trend || 'unknown'}</div>
+                        <div class="metric-label">Momentum</div>
                     </div>
                 </div>
             `;
@@ -376,92 +478,179 @@
             document.getElementById('mainProgress').innerHTML = progressHtml;
         }
 
-        async function loadStats() {
-            const performance = await fetchAPI('/performance');
-            const stats = await fetchAPI('/history-stats');
-            const trends = await fetchAPI('/trends?days=7');
+        async function loadDeadlineInfo() {
+            const latest = await fetchAPI('/latest');
             
-            if (!performance && !stats) {
-                document.getElementById('statsGrid').innerHTML = '<div class="loading">❌ Failed to load statistics</div>';
+            if (!latest) {
+                document.getElementById('deadlineInfo').innerHTML = '❌ No data';
                 return;
             }
 
-            // Safe defaults
-            const safePerformance = performance || {};
-            const safeStats = stats || {};
-            const safeTrends = trends || {};
-
-            const statsHtml = `
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(Math.round(safePerformance.actual_per_minute || 0))}</div>
-                    <div class="stat-label">⚡ Signatures per Minute</div>
-                    <div class="stat-trend ${getTrendClass(safePerformance.velocity_trend)}">
-                        ${safePerformance.velocity_trend || 'calculating...'}
+            const deadlineHtml = `
+                <div style="text-align: center;">
+                    <div style="font-size: 2.5rem; font-weight: bold; margin-bottom: 10px; color: #4CAF50;">
+                        ${latest.days_remaining || 'N/A'}
                     </div>
+                    <div style="opacity: 0.8; margin-bottom: 15px;">Days Remaining</div>
+                    ${latest.deadline ? `<div style="font-size: 0.9rem; opacity: 0.7;">Until ${new Date(latest.deadline).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</div>` : ''}
                 </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(Math.round(safePerformance.actual_per_hour || 0))}</div>
-                    <div class="stat-label">📊 Signatures per Hour</div>
-                    <div class="stat-trend ${getTrendClass(safePerformance.velocity_trend)}">
-                        ${safePerformance.velocity_trend || 'calculating...'}
+                <hr style="margin: 20px 0; border: none; height: 1px; background: rgba(255,255,255,0.2);">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; text-align: center;">
+                    <div>
+                        <div style="font-size: 1.3rem; font-weight: bold;">${formatRate(latest.required_per_day)}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Target Daily</div>
                     </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(Math.round(safePerformance.actual_per_day || 0))}</div>
-                    <div class="stat-label">📈 Signatures per Day</div>
-                    <div class="stat-trend ${safePerformance.on_track_daily ? 'trend-positive' : safePerformance.on_track_daily === false ? 'trend-negative' : 'trend-neutral'}">
-                        ${safePerformance.daily_performance_ratio ? 
-                            `${(safePerformance.daily_performance_ratio * 100).toFixed(0)}% of target` : 
-                            'Tracking performance'}
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(Math.round(safePerformance.actual_per_week || 0))}</div>
-                    <div class="stat-label">🗓️ Signatures per Week</div>
-                    <div class="stat-trend trend-neutral">
-                        Projected rate
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(safeStats.total_growth || 0)}</div>
-                    <div class="stat-label">📊 Total Growth</div>
-                    <div class="stat-trend ${safeStats.momentum_score === 'positive' ? 'trend-positive' : 
-                                              safeStats.momentum_score === 'negative' ? 'trend-negative' : 'trend-neutral'}">
-                        ${safeStats.momentum_score || 'neutral'} momentum
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${safeStats.total_entries || 0}</div>
-                    <div class="stat-label">📋 Data Points</div>
-                    <div class="stat-trend trend-neutral">
-                        Since ${safeStats.first_entry ? new Date(safeStats.first_entry).toLocaleDateString() : 'start'}
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${safeTrends.on_track_percentage ? Math.round(safeTrends.on_track_percentage) : 0}%</div>
-                    <div class="stat-label">🎯 On Track Time</div>
-                    <div class="stat-trend ${(safeTrends.on_track_percentage || 0) > 70 ? 'trend-positive' : 
-                                              (safeTrends.on_track_percentage || 0) < 30 ? 'trend-negative' : 'trend-neutral'}">
-                        Last 7 days
-                    </div>
-                </div>
-                
-                <div class="stat-card">
-                    <div class="stat-number">${formatNumber(Math.round(safeStats.average_signatures || 0))}</div>
-                    <div class="stat-label">📊 Average Signatures</div>
-                    <div class="stat-trend trend-neutral">
-                        Historical average
+                    <div>
+                        <div style="font-size: 1.3rem; font-weight: bold;">${formatRate(latest.required_per_hour)}</div>
+                        <div style="font-size: 0.8rem; opacity: 0.8;">Target Hourly</div>
                     </div>
                 </div>
             `;
             
-            document.getElementById('statsGrid').innerHTML = statsHtml;
+            document.getElementById('deadlineInfo').innerHTML = deadlineHtml;
+        }
+
+        async function loadVelocityInfo() {
+            const latest = await fetchAPI('/latest');
+            
+            if (!latest) {
+                document.getElementById('velocityInfo').innerHTML = '❌ No data';
+                return;
+            }
+
+            const velocityHtml = `
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="font-size: 2rem; margin-bottom: 10px; ${getVelocityClass(latest.velocity_trend)}">
+                        ${getVelocityEmoji(latest.velocity_trend)} ${latest.velocity_trend || 'unknown'}
+                    </div>
+                    <div style="opacity: 0.8;">Current Trend</div>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span>Per Minute:</span>
+                        <strong>${formatRate(latest.actual_per_minute)}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span>Per Hour:</span>
+                        <strong>${formatRate(latest.actual_per_hour)}</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; padding: 8px 0;">
+                        <span>Per Week:</span>
+                        <strong>${formatRate(latest.actual_per_week)}</strong>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('velocityInfo').innerHTML = velocityHtml;
+        }
+
+        async function loadRealtimeRates() {
+            const latest = await fetchAPI('/latest');
+            
+            if (!latest) {
+                document.getElementById('realtimeRates').innerHTML = '❌ No data';
+                return;
+            }
+
+            const ratesHtml = `
+                <div class="stat-row">
+                    <span>Per Second</span>
+                    <span class="stat-value">${formatRate(latest.actual_per_minute / 60)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Per Minute</span>
+                    <span class="stat-value">${formatRate(latest.actual_per_minute)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Per Hour</span>
+                    <span class="stat-value">${formatRate(latest.actual_per_hour)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Per Day</span>
+                    <span class="stat-value">${formatRate(latest.actual_per_day)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Per Week</span>
+                    <span class="stat-value">${formatRate(latest.actual_per_week)}</span>
+                </div>
+            `;
+            
+            document.getElementById('realtimeRates').innerHTML = ratesHtml;
+        }
+
+        async function loadTargetVsActual() {
+            const latest = await fetchAPI('/latest');
+            
+            if (!latest) {
+                document.getElementById('targetVsActual').innerHTML = '❌ No data';
+                return;
+            }
+
+            const dailyPerformance = latest.required_per_day && latest.actual_per_day ? 
+                (latest.actual_per_day / latest.required_per_day * 100).toFixed(0) : 'N/A';
+            const hourlyPerformance = latest.required_per_hour && latest.actual_per_hour ? 
+                (latest.actual_per_hour / latest.required_per_hour * 100).toFixed(0) : 'N/A';
+
+            const targetHtml = `
+                <div class="stat-row">
+                    <span>Daily Target</span>
+                    <span class="stat-value">${formatRate(latest.required_per_day)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Daily Actual</span>
+                    <span class="stat-value ${latest.on_track_daily ? 'velocity-positive' : 'velocity-negative'}">${formatRate(latest.actual_per_day)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Daily Performance</span>
+                    <span class="stat-value ${dailyPerformance !== 'N/A' && parseFloat(dailyPerformance) >= 100 ? 'velocity-positive' : 'velocity-negative'}">${dailyPerformance}%</span>
+                </div>
+                <div class="stat-row">
+                    <span>Hourly Target</span>
+                    <span class="stat-value">${formatRate(latest.required_per_hour)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Hourly Actual</span>
+                    <span class="stat-value ${latest.on_track_hourly ? 'velocity-positive' : 'velocity-negative'}">${formatRate(latest.actual_per_hour)}</span>
+                </div>
+            `;
+            
+            document.getElementById('targetVsActual').innerHTML = targetHtml;
+        }
+
+        async function loadPerformanceMetrics() {
+            const latest = await fetchAPI('/latest');
+            const stats = await fetchAPI('/history-stats');
+            
+            if (!latest && !stats) {
+                document.getElementById('performanceMetrics').innerHTML = '❌ No data';
+                return;
+            }
+
+            const safeStats = stats || {};
+            const metricsHtml = `
+                <div class="stat-row">
+                    <span>On Track (Daily)</span>
+                    <span class="stat-value ${latest?.on_track_daily ? 'velocity-positive' : 'velocity-negative'}">${latest?.on_track_daily ? 'YES' : latest?.on_track_daily === false ? 'NO' : 'N/A'}</span>
+                </div>
+                <div class="stat-row">
+                    <span>On Track (Hourly)</span>
+                    <span class="stat-value ${latest?.on_track_hourly ? 'velocity-positive' : 'velocity-negative'}">${latest?.on_track_hourly ? 'YES' : latest?.on_track_hourly === false ? 'NO' : 'N/A'}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Total Data Points</span>
+                    <span class="stat-value">${safeStats.total_entries || 0}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Total Growth</span>
+                    <span class="stat-value velocity-positive">${formatNumber(safeStats.total_growth || 0)}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Average Signatures</span>
+                    <span class="stat-value">${formatNumber(safeStats.average_signatures || 0)}</span>
+                </div>
+            `;
+            
+            document.getElementById('performanceMetrics').innerHTML = metricsHtml;
         }
 
         async function loadChart() {
@@ -474,9 +663,7 @@
 
             const ctx = document.getElementById('trendChart').getContext('2d');
             
-            // Reverse data to show chronological order
             const data = history.data.reverse();
-            
             const labels = data.map(d => new Date(d.timestamp).toLocaleDateString());
             const signatures = data.map(d => d.signatures);
             
@@ -508,7 +695,10 @@
                     plugins: {
                         legend: {
                             labels: {
-                                color: 'white'
+                                color: 'white',
+                                font: {
+                                    size: 14
+                                }
                             }
                         }
                     },
@@ -547,11 +737,15 @@
         }
 
         async function loadData() {
-            document.getElementById('lastUpdated').innerHTML = '🔄 Refreshing...';
+            document.getElementById('lastUpdated').innerHTML = '🔄 Refreshing all data...';
             
             await Promise.all([
                 loadMainProgress(),
-                loadStats(),
+                loadDeadlineInfo(),
+                loadVelocityInfo(),
+                loadRealtimeRates(),
+                loadTargetVsActual(),
+                loadPerformanceMetrics(),
                 loadChart()
             ]);
             
@@ -559,8 +753,8 @@
                 `Last updated: ${new Date().toLocaleString()}`;
         }
 
-        // Auto-refresh every 5 minutes
-        setInterval(loadData, 5 * 60 * 1000);
+        // Auto-refresh every 2 minutes
+        setInterval(loadData, 2 * 60 * 1000);
         
         // Initial load
         loadData();
