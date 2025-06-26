@@ -1,3 +1,4 @@
+// ---------- public/dashboard.html ----------
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,62 +6,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Stop Killing Games - ECI Tracker</title>
 
-  <!-- Roboto font & Material Icons for MUI -->
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap"/>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+  <!-- Roboto & Material Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
 
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
-    #root {
-      min-height: 100vh;
-    }
+    body, html { margin:0; padding:0; height:100%; font-family:'Roboto',sans-serif; background:linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:#fff; }
+    #root { min-height:100%; }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
-  <!-- React, ReactDOM, MUI, Chart.js, Babel -->
+  <!-- React, ReactDOM -->
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- Emotion (for MUI styling) -->
+  <script src="https://unpkg.com/@emotion/react@11.11.0/umd/emotion-react.umd.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@emotion/styled@11.11.0/umd/emotion-styled.umd.min.js" crossorigin></script>
+  <!-- MUI Core -->
   <script src="https://unpkg.com/@mui/material@5/umd/material-ui.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@mui/icons-material@5/umd/material-ui-icons.development.js" crossorigin></script>
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Babel for JSX -->
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <script type="text/babel">
-    const {
-      useState,
-      useEffect,
-      useRef,
-      createElement: h
-    } = React;
-    const {
-      ThemeProvider,
-      createTheme,
-      CssBaseline,
-      Container,
-      Typography,
-      Box,
-      Grid,
-      Paper,
-      LinearProgress,
-      Chip,
-      IconButton
-    } = MaterialUI;
-    const { Refresh } = MaterialUIIcons;
-    const { Chart } = window;
+    const { useState, useEffect, useRef, createElement: h } = React;
+    const { CssBaseline, ThemeProvider, createTheme, Container, Typography, Box, Grid, Paper, LinearProgress, Chip, IconButton } = MaterialUI;
 
     const theme = createTheme({
-      palette: {
-        mode: 'dark',
-        primary: { main: '#4caf50' },
-        secondary: { main: '#8bc34a' }
-      }
+      palette: { mode: 'dark', primary: { main: '#4caf50' }, secondary: { main: '#8bc34a' } }
     });
 
     async function fetchJSON(endpoint) {
@@ -71,25 +47,18 @@
 
     function MainProgress({ data }) {
       if (!data) return h(Typography, null, 'Loading...');
-      const {
-        signatures,
-        goal,
-        progress_percent,
-        on_track_daily,
-        velocity_trend,
-        actual_per_day
-      } = data;
-      const statusColor = on_track_daily ? 'success' : (on_track_daily === false ? 'error' : 'default');
+      const { signatures, goal, progress_percent, on_track_daily, velocity_trend, actual_per_day } = data;
+      const statusColor = on_track_daily ? 'success' : on_track_daily === false ? 'error' : 'default';
       return (
-        h(Paper, { sx: { p:3, backdropFilter: 'blur(10px)' } },
-          h(Box, { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb:2 },
+        h(Paper, { sx: { p:3, backdropFilter:'blur(10px)' } },
+          h(Box, { display:'flex', justifyContent:'space-between', alignItems:'center', mb:2 },
             h(Box, null,
-              h(Typography, { variant: 'h3' }, signatures.toLocaleString()),
+              h(Typography, { variant:'h3' }, signatures.toLocaleString()),
               h(Typography, null, `of ${goal.toLocaleString()} (${progress_percent.toFixed(1)}%)`)
             ),
-            h(Chip, { label: on_track_daily ? 'ON TRACK' : (on_track_daily === false ? 'BEHIND' : 'MONITOR'), color: statusColor })
+            h(Chip, { label: on_track_daily ? 'ON TRACK' : on_track_daily===false ? 'BEHIND' : 'MONITOR', color: statusColor })
           ),
-          h(LinearProgress, { variant: 'determinate', value: Math.min(progress_percent,100), sx: { height:16, borderRadius:8 } }),
+          h(LinearProgress, { variant:'determinate', value: Math.min(progress_percent,100), sx:{ height:16, borderRadius:8 } }),
           h(Grid, { container:true, spacing:2, mt:2 },
             h(Grid, { item:true, xs:4 },
               h(Box, { textAlign:'center' },
@@ -123,7 +92,7 @@
           h(Box, { textAlign:'center', my:2 },
             h(Typography, { variant:'h4', color:'success.main' }, days_remaining ?? 'N/A'),
             h(Typography, null, 'Days Remaining'),
-            deadline && h(Typography, { variant:'caption', display:'block' }, `Until ${new Date(deadline).toLocaleDateString()}`)
+            deadline && h(Typography, { variant:'caption' }, `Until ${new Date(deadline).toLocaleDateString()}`)
           ),
           h(Box, { display:'flex', justifyContent:'space-around' },
             h(Box, { textAlign:'center' },
@@ -142,13 +111,11 @@
     function VelocityInfo({ data }) {
       if (!data) return h(Typography, null, 'Loading...');
       const { velocity_trend, actual_per_minute, actual_per_hour, actual_per_week } = data;
-      const emoji = trend => trend==='accelerating'?'🚀':trend==='slowing'?'📉':'➡️';
+      const emoji=(t)=>t==='accelerating'?'🚀':t==='slowing'?'📉':'➡️';
       return (
         h(Paper, { sx:{ p:2, backdropFilter:'blur(10px)' } },
           h(Typography, { variant:'h6' }, '🚀 Velocity Tracking'),
-          h(Box, { textAlign:'center', my:2 },
-            h(Typography, { variant:'h4' }, `${emoji(velocity_trend)} ${velocity_trend}`)
-          ),
+          h(Box, { textAlign:'center', my:2 }, h(Typography, { variant:'h4' }, `${emoji(velocity_trend)} ${velocity_trend}`)),
           h(Typography, null, `Per Min: ${Math.round(actual_per_minute)}`),
           h(Typography, null, `Per Hour: ${Math.round(actual_per_hour)}`),
           h(Typography, null, `Per Week: ${Math.round(actual_per_week)}`)
@@ -159,22 +126,11 @@
     function RealtimeRates({ data }) {
       if (!data) return h(Typography, null, 'Loading...');
       const { actual_per_minute, actual_per_hour, actual_per_day, actual_per_week } = data;
-      const rows = [
-        ['Sec', actual_per_minute/60],
-        ['Min', actual_per_minute],
-        ['Hour', actual_per_hour],
-        ['Day', actual_per_day],
-        ['Week', actual_per_week]
-      ];
+      const rows=[['Sec',actual_per_minute/60],['Min',actual_per_minute],['Hour',actual_per_hour],['Day',actual_per_day],['Week',actual_per_week]];
       return (
         h(Paper, { sx:{ p:2, backdropFilter:'blur(10px)' } },
           h(Typography, { variant:'h6' }, '⚡ Real-Time Rates'),
-          rows.map(([label,val]) =>
-            h(Box, { key:label, display:'flex', justifyContent:'space-between' },
-              h(Typography, null, label),
-              h(Typography, null, Math.round(val))
-            )
-          )
+          rows.map(([lbl,val])=>h(Box,{key:lbl,display:'flex',justifyContent:'space-between'},h(Typography,null,lbl),h(Typography,null,Math.round(val))))
         )
       );
     }
@@ -182,119 +138,66 @@
     function TargetVsActual({ data }) {
       if (!data) return h(Typography, null, 'Loading...');
       const { required_per_day, actual_per_day, required_per_hour, actual_per_hour, on_track_daily, on_track_hourly } = data;
-      const rows = [
-        ['Daily', required_per_day, actual_per_day, on_track_daily],
-        ['Hourly', required_per_hour, actual_per_hour, on_track_hourly]
-      ];
+      const rows=[['Daily',required_per_day,actual_per_day,on_track_daily],['Hourly',required_per_hour,actual_per_hour,on_track_hourly]];
       return (
         h(Paper, { sx:{ p:2, backdropFilter:'blur(10px)' } },
-          h(Typography, { variant:'h6' }, '🎯 Target vs Actual'),
-          rows.map(([lbl, req, act, ok]) =>
-            h(Box, { key:lbl, display:'flex', justifyContent:'space-between' },
-              h(Typography, null, lbl),
-              h(Typography, null, `${Math.round(act)} / ${Math.round(req)} ${ok?'✅':'❌'}`)
-            )
-          )
+          h(Typography,{variant:'h6'},'🎯 Target vs Actual'),
+          rows.map(([lbl,req,act,ok])=>h(Box,{key:lbl,display:'flex',justifyContent:'space-between'},h(Typography,null,lbl),h(Typography,null,`${Math.round(act)} / ${Math.round(req)} ${ok?'✅':'❌'}`)))
         )
       );
     }
 
     function PerformanceMetrics({ latest, stats }) {
-      if (!latest || !stats) return h(Typography, null, 'Loading...');
-      const { on_track_daily, on_track_hourly } = latest;
-      const { total_entries, total_growth, average_signatures } = stats;
-      const rows = [
-        ['On Track (Daily)', on_track_daily?'YES':'NO'],
-        ['On Track (Hourly)', on_track_hourly?'YES':'NO'],
-        ['Data Points', total_entries],
-        ['Growth', total_growth],
-        ['Avg Signatures', Math.round(average_signatures)]
-      ];
+      if (!latest||!stats) return h(Typography,null,'Loading...');
+      const { on_track_daily,on_track_hourly }=latest; const { total_entries,total_growth,average_signatures }=stats;
+      const rows=[['On Track (Daily)',on_track_daily?'YES':'NO'],['On Track (Hourly)',on_track_hourly?'YES':'NO'],['Data Points',total_entries],['Growth',total_growth],['Avg Signatures',Math.round(average_signatures)]];
       return (
-        h(Paper, { sx:{ p:2, backdropFilter:'blur(10px)' } },
-          h(Typography, { variant:'h6' }, '📊 Performance Metrics'),
-          rows.map(([lbl, val]) =>
-            h(Box, { key:lbl, display:'flex', justifyContent:'space-between' },
-              h(Typography, null, lbl),
-              h(Typography, null, val)
-            )
-          )
+        h(Paper,{sx:{p:2,backdropFilter:'blur(10px)'}},
+          h(Typography,{variant:'h6'},'📊 Performance Metrics'),
+          rows.map(([lbl,val])=>h(Box,{key:lbl,display:'flex',justifyContent:'space-between'},h(Typography,null,lbl),h(Typography,null,val)))
         )
       );
     }
 
     function TrendChart() {
-      const canvasRef = useRef(null);
-      useEffect(() => {
-        fetchJSON('/history?limit=50').then(resp => {
-          const pts = resp.data.reverse();
-          new Chart(canvasRef.current.getContext('2d'), {
-            type: 'line',
-            data: {
-              labels: pts.map(d => new Date(d.timestamp).toLocaleDateString()),
-              datasets: [{ label:'Signatures', data:pts.map(d=>d.signatures), fill:true, tension:0.4 }]
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false
-            }
+      const canvasRef=useRef();
+      useEffect(()=>{
+        fetchJSON('/history?limit=50').then(resp=>{
+          const pts=resp.data.reverse();
+          new Chart(canvasRef.current.getContext('2d'),{
+            type:'line', data:{ labels:pts.map(d=>new Date(d.timestamp).toLocaleDateString()), datasets:[{label:'Signatures',data:pts.map(d=>d.signatures),fill:true,tension:0.4}] }, options:{responsive:true,maintainAspectRatio:false}
           });
         });
-      }, []);
-      return (
-        h(Paper, { sx:{ p:2, backdropFilter:'blur(10px)', height:450 } },
-          h('canvas', { ref: canvasRef })
-        )
-      );
+      },[]);
+      return h(Paper,{sx:{p:2,backdropFilter:'blur(10px)',height:450}},h('canvas',{ref:canvasRef}));
     }
 
     function App() {
-      const [latest, setLatest] = useState(null);
-      const [stats, setStats] = useState(null);
-
-      const load = () => {
-        Promise.all([
-          fetchJSON('/latest'),
-          fetchJSON('/history-stats')
-        ]).then(([l,s]) => { setLatest(l); setStats(s); })
-          .catch(console.error);
-      };
-
-      useEffect(() => {
-        load();
-        const id = setInterval(load, 2*60*1000);
-        return () => clearInterval(id);
-      }, []);
-
+      const [latest,setLatest]=useState(null); const [stats,setStats]=useState(null);
+      useEffect(()=>{const load=()=>Promise.all([fetchJSON('/latest'),fetchJSON('/history-stats')]).then(([l,s])=>{setLatest(l);setStats(s)}).catch(console.error); load(); const i=setInterval(load,120000);return()=>clearInterval(i);},[]);
       return (
-        h(Container, { sx:{ py:4 }, maxWidth:'lg' },
-          h(Box, { textAlign:'center', mb:4 },
-            h(Typography, { variant:'h2', gutterBottom:true }, '🎮 Stop Killing Games'),
-            h(Typography, { variant:'h6', color:'textSecondary' }, "European Citizens' Initiative Progress Tracker")
-          ),
-          h(Grid, { container:true, spacing:3 },
-            h(Grid, { item:true, xs:12, md:8 }, h(MainProgress, { data: latest })),
-            h(Grid, { item:true, xs:12, md:4, container:true, direction:'column', spacing:2 },
-              h(Grid, { item:true }, h(DeadlineInfo, { data: latest })),
-              h(Grid, { item:true }, h(VelocityInfo, { data: latest }))
+        h(ThemeProvider,{theme},h(CssBaseline),
+          h(Container,{sx:{py:4},maxWidth:'lg'},
+            h(Box,{textAlign:'center',mb:4},h(Typography,{variant:'h2',gutterBottom:true},'🎮 Stop Killing Games'),h(Typography,{variant:'h6',color:'textSecondary'},"European Citizens' Initiative Progress Tracker")),
+            h(Grid,{container:true,spacing:3},
+              h(Grid,{item:true,xs:12,md:8},h(MainProgress,{data:latest})),
+              h(Grid,{item:true,xs:12,md:4,container:true,direction:'column',spacing:2},h(Grid,{item:true},h(DeadlineInfo,{data:latest})),h(Grid,{item:true},h(VelocityInfo,{data:latest}))),
+              h(Grid,{item:true,xs:12,md:4},h(RealtimeRates,{data:latest})),
+              h(Grid,{item:true,xs:12,md:4},h(TargetVsActual,{data:latest})),
+              h(Grid,{item:true,xs:12,md:4},h(PerformanceMetrics,{latest,stats})),
+              h(Grid,{item:true,xs:12},h(TrendChart))
             ),
-            h(Grid, { item:true, xs:12, md:4 }, h(RealtimeRates, { data: latest })),
-            h(Grid, { item:true, xs:12, md:4 }, h(TargetVsActual, { data: latest })),
-            h(Grid, { item:true, xs:12, md:4 }, h(PerformanceMetrics, { latest, stats })),
-            h(Grid, { item:true, xs:12 }, h(TrendChart, {}))
-          ),
-          h(Box, { textAlign:'right', mt:2 },
-            h(IconButton, { onClick: load, color:'primary' }, h(Refresh)),
-            h(Typography, { variant:'caption', color:'textSecondary' },
-              latest ? `Last updated: ${new Date(latest.timestamp).toLocaleString()}` : 'Loading...'
-            )
+            h(Box,{textAlign:'right',mt:2},h(IconButton,{onClick:()=>Promise.all([fetchJSON('/latest'),fetchJSON('/history-stats')]).then(([l,s])=>{setLatest(l);setStats(s)}).catch(console.error),color:'primary'},
+              h('span',{className:'material-icons'},'refresh')
+            ),
+            h(Typography,{variant:'caption',color:'textSecondary'},latest?`Last updated: ${new Date(latest.timestamp).toLocaleString()}`:'Loading...')
           )
         )
+      )
       );
     }
 
-    ReactDOM.createRoot(document.getElementById('root'))
-      .render(h(ThemeProvider, { theme }, h(CssBaseline), h(App)));
+    ReactDOM.createRoot(document.getElementById('root')).render(h(App));
   </script>
 </body>
 </html>
