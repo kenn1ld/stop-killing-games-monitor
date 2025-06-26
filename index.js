@@ -296,6 +296,8 @@ async function runMonitor() {
     if (performanceMetrics.actual_per_day) {
       console.log(`📊 Rate: ${performanceMetrics.actual_per_day.toFixed(0)}/day (need ${deadlineStats.required_per_day?.toFixed(0) || 'N/A'}/day)`);
     }
+    
+  } catch (error) {
     errorCount++;
     console.error(`❌ Monitor error (attempt ${errorCount}):`, error.message);
   } finally {
